@@ -1420,7 +1420,7 @@
                  <item>
                   <widget class="QLineEdit" name="lineEdit_unoUrl">
                    <property name="text">
-                    <string>https://app.overlays.uno/apiv2/controlapps/.../api</string>
+                    <string>https://app.overlays.uno/control/.../</string>
                    </property>
                   </widget>
                  </item>
@@ -1577,6 +1577,92 @@
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>true</bool>
              </attribute>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QWidget" name="widget_uno_log_section" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_uno_log">
+              <property name="spacing">
+               <number>3</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>3</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QWidget" name="widget_uno_log_buttons" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_uno_log_buttons">
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_uno_log">
+                   <property name="text">
+                    <string>Output Log</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_uno_log">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_uno_test">
+                   <property name="text">
+                    <string>Test Output</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_uno_clear_log">
+                   <property name="text">
+                    <string>Clear</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPlainTextEdit" name="plainTextEdit_uno_log">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+                <property name="maximumBlockCount">
+                 <number>1000</number>
+                </property>
+                <property name="placeholderText">
+                 <string>UNO request/response logs will appear here...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>

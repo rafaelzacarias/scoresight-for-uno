@@ -821,6 +821,49 @@ class Ui_MainWindow(object):
 
         self.gridLayout_5.addWidget(self.tableView_unoMapping, 2, 0, 1, 1)
 
+        self.widget_uno_log_section = QWidget(self.tab_uno)
+        self.widget_uno_log_section.setObjectName(u"widget_uno_log_section")
+        self.verticalLayout_uno_log = QVBoxLayout(self.widget_uno_log_section)
+        self.verticalLayout_uno_log.setSpacing(3)
+        self.verticalLayout_uno_log.setObjectName(u"verticalLayout_uno_log")
+        self.verticalLayout_uno_log.setContentsMargins(0, 3, 0, 0)
+        self.widget_uno_log_buttons = QWidget(self.widget_uno_log_section)
+        self.widget_uno_log_buttons.setObjectName(u"widget_uno_log_buttons")
+        self.horizontalLayout_uno_log_buttons = QHBoxLayout(self.widget_uno_log_buttons)
+        self.horizontalLayout_uno_log_buttons.setObjectName(u"horizontalLayout_uno_log_buttons")
+        self.horizontalLayout_uno_log_buttons.setContentsMargins(0, 0, 0, 0)
+        self.label_uno_log = QLabel(self.widget_uno_log_buttons)
+        self.label_uno_log.setObjectName(u"label_uno_log")
+
+        self.horizontalLayout_uno_log_buttons.addWidget(self.label_uno_log)
+
+        self.horizontalSpacer_uno_log = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_uno_log_buttons.addItem(self.horizontalSpacer_uno_log)
+
+        self.pushButton_uno_test = QPushButton(self.widget_uno_log_buttons)
+        self.pushButton_uno_test.setObjectName(u"pushButton_uno_test")
+
+        self.horizontalLayout_uno_log_buttons.addWidget(self.pushButton_uno_test)
+
+        self.pushButton_uno_clear_log = QPushButton(self.widget_uno_log_buttons)
+        self.pushButton_uno_clear_log.setObjectName(u"pushButton_uno_clear_log")
+
+        self.horizontalLayout_uno_log_buttons.addWidget(self.pushButton_uno_clear_log)
+
+
+        self.verticalLayout_uno_log.addWidget(self.widget_uno_log_buttons)
+
+        self.plainTextEdit_uno_log = QPlainTextEdit(self.widget_uno_log_section)
+        self.plainTextEdit_uno_log.setObjectName(u"plainTextEdit_uno_log")
+        self.plainTextEdit_uno_log.setReadOnly(True)
+        self.plainTextEdit_uno_log.setMaximumBlockCount(1000)
+
+        self.verticalLayout_uno_log.addWidget(self.plainTextEdit_uno_log)
+
+
+        self.gridLayout_5.addWidget(self.widget_uno_log_section, 3, 0, 1, 1)
+
         self.tabWidget_outputs.addTab(self.tab_uno, "")
         self.tab_api = QWidget()
         self.tab_api.setObjectName(u"tab_api")
@@ -1296,7 +1339,7 @@ class Ui_MainWindow(object):
         self.checkBox_vmix_send_same.setText(QCoreApplication.translate("MainWindow", u"Send Same?", None))
         self.tabWidget_outputs.setTabText(self.tabWidget_outputs.indexOf(self.tab_vmix), QCoreApplication.translate("MainWindow", u"VMix", None))
         self.connectionLabel_2.setText(QCoreApplication.translate("MainWindow", u"URL", None))
-        self.lineEdit_unoUrl.setText(QCoreApplication.translate("MainWindow", u"https://app.overlays.uno/apiv2/controlapps/.../api", None))
+        self.lineEdit_unoUrl.setText(QCoreApplication.translate("MainWindow", u"https://app.overlays.uno/control/.../", None))
         self.toolButton_toggleUno.setText(QCoreApplication.translate("MainWindow", u"\u25b6\ufe0f", None))
 #if QT_CONFIG(tooltip)
         self.checkBox_uno_send_same.setToolTip(QCoreApplication.translate("MainWindow", u"Send only new detections or also existing?", None))
@@ -1308,6 +1351,10 @@ class Ui_MainWindow(object):
         self.label_24.setText(QCoreApplication.translate("MainWindow", u"Overlay ID", None))
         self.lineEdit_uno_essentials_id.setText("")
         self.lineEdit_uno_essentials_id.setPlaceholderText(QCoreApplication.translate("MainWindow", u"aaaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeeee", None))
+        self.label_uno_log.setText(QCoreApplication.translate("MainWindow", u"Output Log", None))
+        self.pushButton_uno_test.setText(QCoreApplication.translate("MainWindow", u"Test Output", None))
+        self.pushButton_uno_clear_log.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
+        self.plainTextEdit_uno_log.setPlaceholderText(QCoreApplication.translate("MainWindow", u"UNO request/response logs will appear here...", None))
         self.tabWidget_outputs.setTabText(self.tabWidget_outputs.indexOf(self.tab_uno), QCoreApplication.translate("MainWindow", u"UNO", None))
         self.checkBox_enableOutAPI.setText(QCoreApplication.translate("MainWindow", u"Send out API requests to external services.", None))
         self.label_21.setText(QCoreApplication.translate("MainWindow", u"Encode", None))
