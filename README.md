@@ -6,6 +6,8 @@
 
 [![GitHub](https://img.shields.io/github/license/rafaelzacarias/scoresight-for-uno)](https://github.com/rafaelzacarias/scoresight-for-uno/blob/main/LICENSE)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/rafaelzacarias/scoresight-for-uno/build.yaml)](https://github.com/rafaelzacarias/scoresight-for-uno/actions/workflows/build.yaml)
+[![Total downloads](https://img.shields.io/github/downloads/rafaelzacarias/scoresight-for-uno/total)](https://github.com/rafaelzacarias/scoresight-for-uno/releases)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/rafaelzacarias/scoresight-for-uno)](https://github.com/rafaelzacarias/scoresight-for-uno/releases)
 
 </div>
 
