@@ -1,4 +1,5 @@
 import json
+import threading
 from datetime import datetime
 
 import requests
@@ -128,26 +129,27 @@ class UNOAPI:
                 "id": self.uno_essentials_id,
             }
 
-        self._emit_log(f"→ PUT {self.endpoint}")
-        self._emit_log(f"  Request body: {json.dumps(payload)}")
+        endpoint = self.endpoint
 
-        try:
-            response = requests.put(self.endpoint, json=payload)
-            body = self._format_response_body(response)
-            self._emit_log(f"← Response [{response.status_code}]: {body}")
-            if response.status_code != 200:
-                logger.error(
-                    f"Failed to send data to UNO API, status code: {response.status_code}"
-                )
-            else:
-                logger.debug(f"Successfully sent {command}: {value} to UNO API")
+        def _do_request():
+            self._emit_log(f"→ PUT {endpoint}")
+            self._emit_log(f"  Request body: {json.dumps(payload)}")
+            try:
+                response = requests.put(endpoint, json=payload)
+                body = self._format_response_body(response)
+                self._emit_log(f"← Response [{response.status_code}]: {body}")
+                if response.status_code != 200:
+                    logger.error(
+                        f"Failed to send data to UNO API, status code: {response.status_code}"
+                    )
+                else:
+                    logger.debug(f"Successfully sent {command}: {value} to UNO API")
+                self.check_rate_limits(response.headers)
+            except requests.exceptions.RequestException as e:
+                self._emit_log(f"✗ Request failed: {e}")
+                logger.error(f"Failed to send data to UNO API: {e}")
 
-            # Check rate limit headers
-            self.check_rate_limits(response.headers)
-
-        except requests.exceptions.RequestException as e:
-            self._emit_log(f"✗ Request failed: {e}")
-            logger.error(f"Failed to send data to UNO API: {e}")
+        threading.Thread(target=_do_request, daemon=True).start()
 
     def send_uno_overlays_batch(self, updates):
         """Send batched updates using overlays format with PATCH request."""
@@ -163,26 +165,29 @@ class UNOAPI:
             }
         ]
 
-        self._emit_log(f"→ PATCH {self.endpoint}")
-        self._emit_log(f"  Request body: {json.dumps(payload)}")
+        endpoint = self.endpoint
 
-        try:
-            response = requests.patch(self.endpoint, json=payload)
-            body = self._format_response_body(response)
-            self._emit_log(f"← Response [{response.status_code}]: {body}")
-            if response.status_code != 200:
-                logger.error(
-                    f"Failed to send overlays batch to UNO API, status code: {response.status_code}"
-                )
-            else:
-                logger.debug(f"Successfully sent overlays batch to UNO API: {updates}")
+        def _do_request():
+            self._emit_log(f"→ PATCH {endpoint}")
+            self._emit_log(f"  Request body: {json.dumps(payload)}")
+            try:
+                response = requests.patch(endpoint, json=payload)
+                body = self._format_response_body(response)
+                self._emit_log(f"← Response [{response.status_code}]: {body}")
+                if response.status_code != 200:
+                    logger.error(
+                        f"Failed to send overlays batch to UNO API, status code: {response.status_code}"
+                    )
+                else:
+                    logger.debug(
+                        f"Successfully sent overlays batch to UNO API: {updates}"
+                    )
+                self.check_rate_limits(response.headers)
+            except requests.exceptions.RequestException as e:
+                self._emit_log(f"✗ Request failed: {e}")
+                logger.error(f"Failed to send overlays batch to UNO API: {e}")
 
-            # Check rate limit headers
-            self.check_rate_limits(response.headers)
-
-        except requests.exceptions.RequestException as e:
-            self._emit_log(f"✗ Request failed: {e}")
-            logger.error(f"Failed to send overlays batch to UNO API: {e}")
+        threading.Thread(target=_do_request, daemon=True).start()
 
     def check_rate_limits(self, headers):
         rate_limit_headers = [
@@ -200,55 +205,64 @@ class UNOAPI:
                 # You can add more sophisticated rate limit handling here if needed
                 # For example, pause requests if limits are close to being reached
 
-    def test_connection(self):
-        """Send a test request to the UNO endpoint to verify connectivity."""
-        self._emit_log("--- Test Connection ---")
-        self._emit_log(f"Endpoint: {self.endpoint}")
+    def test_connection(self, on_finished=None):
+        """Send a test request to the UNO endpoint to verify connectivity.
 
-        if self.use_overlays_format:
-            if not self.subCompositionId:
-                self._emit_log(
-                    "✗ Error: subCompositionId is not set for overlays format"
-                )
-                return
-            payload = [
-                {
-                    "subCompositionId": self.subCompositionId,
-                    "payload": {},
-                }
-            ]
-            self._emit_log(f"→ PATCH {self.endpoint}")
-            self._emit_log(f"  Request body: {json.dumps(payload)}")
-            try:
-                response = requests.patch(self.endpoint, json=payload)
-                body = self._format_response_body(response)
-                self._emit_log(f"← Response [{response.status_code}]: {body}")
-                if response.status_code == 200:
-                    self._emit_log("✓ Connection successful!")
-                else:
-                    self._emit_log(
-                        f"✗ Connection returned status {response.status_code}"
-                    )
-            except requests.exceptions.RequestException as e:
-                self._emit_log(f"✗ Connection failed: {e}")
-        else:
-            payload = {"command": "ping", "value": ""}
-            self._emit_log(f"→ PUT {self.endpoint}")
-            self._emit_log(f"  Request body: {json.dumps(payload)}")
-            try:
-                response = requests.put(self.endpoint, json=payload)
-                body = self._format_response_body(response)
-                self._emit_log(f"← Response [{response.status_code}]: {body}")
-                if response.status_code == 200:
-                    self._emit_log("✓ Connection successful!")
-                else:
-                    self._emit_log(
-                        f"✗ Connection returned status {response.status_code}"
-                    )
-            except requests.exceptions.RequestException as e:
-                self._emit_log(f"✗ Connection failed: {e}")
+        Runs the HTTP request on a background thread.
+        on_finished is an optional callback invoked (from the background thread)
+        when the test completes.
+        """
+        endpoint = self.endpoint
+        use_overlays = self.use_overlays_format
+        sub_id = self.subCompositionId
 
-        self._emit_log("--- End Test ---")
+        def _do_test():
+            self._emit_log("--- Test Connection ---")
+            self._emit_log(f"Endpoint: {endpoint}")
+
+            if use_overlays:
+                if not sub_id:
+                    self._emit_log(
+                        "✗ Error: subCompositionId is not set for overlays format"
+                    )
+                    return
+                payload = [{"subCompositionId": sub_id, "payload": {}}]
+                self._emit_log(f"→ PATCH {endpoint}")
+                self._emit_log(f"  Request body: {json.dumps(payload)}")
+                try:
+                    response = requests.patch(endpoint, json=payload)
+                    body = self._format_response_body(response)
+                    self._emit_log(f"← Response [{response.status_code}]: {body}")
+                    if response.status_code == 200:
+                        self._emit_log("✓ Connection successful!")
+                    else:
+                        self._emit_log(
+                            f"✗ Connection returned status {response.status_code}"
+                        )
+                except requests.exceptions.RequestException as e:
+                    self._emit_log(f"✗ Connection failed: {e}")
+            else:
+                payload = {"command": "ping", "value": ""}
+                self._emit_log(f"→ PUT {endpoint}")
+                self._emit_log(f"  Request body: {json.dumps(payload)}")
+                try:
+                    response = requests.put(endpoint, json=payload)
+                    body = self._format_response_body(response)
+                    self._emit_log(f"← Response [{response.status_code}]: {body}")
+                    if response.status_code == 200:
+                        self._emit_log("✓ Connection successful!")
+                    else:
+                        self._emit_log(
+                            f"✗ Connection returned status {response.status_code}"
+                        )
+                except requests.exceptions.RequestException as e:
+                    self._emit_log(f"✗ Connection failed: {e}")
+
+            self._emit_log("--- End Test ---")
+            if on_finished:
+                on_finished()
+
+        threading.Thread(target=_do_test, daemon=True).start()
 
     def start(self):
         self.running = True

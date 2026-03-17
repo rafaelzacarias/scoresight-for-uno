@@ -1,6 +1,6 @@
 from functools import partial
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QObject, Signal
 
 from text_detection_target import TextDetectionTarget
 from ui_mainwindow import Ui_MainWindow
@@ -14,6 +14,14 @@ standard_uno_mapping = {
     "Away Score": "SetGoalsAway",
     "Period": "SetPeriod",
 }
+
+
+class _LogSignalEmitter(QObject):
+    """Helper QObject that allows emitting log messages from any thread
+    and delivering them safely on the Qt main thread via a queued signal."""
+
+    log_message = Signal(str)
+    test_finished = Signal()
 
 
 class UNOUIHandler:
@@ -138,34 +146,47 @@ class UNOUIHandler:
 
     def _setup_log_terminal(self):
         """Configure the log terminal widget with monospace font and button connections."""
+        self._log_emitter = _LogSignalEmitter()
+
         if hasattr(self.ui, "plainTextEdit_uno_log"):
             font = QFont("Courier")
             font.setStyleHint(QFont.StyleHint.Monospace)
             font.setPointSize(9)
             self.ui.plainTextEdit_uno_log.setFont(font)
+            self._log_emitter.log_message.connect(
+                self.ui.plainTextEdit_uno_log.appendPlainText
+            )
 
         if hasattr(self.ui, "pushButton_uno_test"):
             self.ui.pushButton_uno_test.clicked.connect(self._test_connection)
+            self._log_emitter.test_finished.connect(
+                lambda: self.ui.pushButton_uno_test.setEnabled(True)
+            )
 
         if hasattr(self.ui, "pushButton_uno_clear_log"):
             self.ui.pushButton_uno_clear_log.clicked.connect(self._clear_log)
 
     def _setup_log_callback(self):
         """Set the log callback on the current unoUpdater instance."""
-        if self.unoUpdater and hasattr(self.ui, "plainTextEdit_uno_log"):
+        if self.unoUpdater:
             self.unoUpdater.set_log_callback(self._append_log)
 
     def _append_log(self, message):
-        """Append a log message to the UNO log terminal widget."""
-        if hasattr(self.ui, "plainTextEdit_uno_log"):
-            self.ui.plainTextEdit_uno_log.appendPlainText(message)
+        """Append a log message to the UNO log terminal widget (thread-safe)."""
+        self._log_emitter.log_message.emit(message)
 
     def _test_connection(self):
         """Send a test request to verify the UNO endpoint connection."""
         if not self.unoUpdater:
             self._append_log("No UNO connection configured.")
             return
-        self.unoUpdater.test_connection()
+        if hasattr(self.ui, "pushButton_uno_test"):
+            self.ui.pushButton_uno_test.setEnabled(False)
+        self.unoUpdater.test_connection(on_finished=self._on_test_finished)
+
+    def _on_test_finished(self):
+        """Re-enable the test button after test_connection completes (thread-safe)."""
+        self._log_emitter.test_finished.emit()
 
     def _clear_log(self):
         """Clear the UNO log terminal."""
