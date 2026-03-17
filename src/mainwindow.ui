@@ -1420,7 +1420,7 @@
                  <item>
                   <widget class="QLineEdit" name="lineEdit_unoUrl">
                    <property name="text">
-                    <string>https://app.overlays.uno/apiv2/controlapps/.../api</string>
+                    <string>https://app.overlays.uno/control/.../</string>
                    </property>
                   </widget>
                  </item>

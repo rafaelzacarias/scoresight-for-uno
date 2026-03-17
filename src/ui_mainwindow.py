@@ -1339,7 +1339,7 @@ class Ui_MainWindow(object):
         self.checkBox_vmix_send_same.setText(QCoreApplication.translate("MainWindow", u"Send Same?", None))
         self.tabWidget_outputs.setTabText(self.tabWidget_outputs.indexOf(self.tab_vmix), QCoreApplication.translate("MainWindow", u"VMix", None))
         self.connectionLabel_2.setText(QCoreApplication.translate("MainWindow", u"URL", None))
-        self.lineEdit_unoUrl.setText(QCoreApplication.translate("MainWindow", u"https://app.overlays.uno/apiv2/controlapps/.../api", None))
+        self.lineEdit_unoUrl.setText(QCoreApplication.translate("MainWindow", u"https://app.overlays.uno/control/.../", None))
         self.toolButton_toggleUno.setText(QCoreApplication.translate("MainWindow", u"\u25b6\ufe0f", None))
 #if QT_CONFIG(tooltip)
         self.checkBox_uno_send_same.setToolTip(QCoreApplication.translate("MainWindow", u"Send only new detections or also existing?", None))
