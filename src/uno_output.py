@@ -8,6 +8,8 @@ from storage import subscribe_to_data, fetch_data
 
 
 class UNOAPI:
+    MAX_RESPONSE_LOG_LENGTH = 500
+
     def __init__(self, endpoint, field_mapping):
         self.endpoint = endpoint
         self.field_mapping = field_mapping
@@ -60,8 +62,8 @@ class UNOAPI:
         if self._log_callback:
             self._log_callback(log_line)
 
-    @staticmethod
-    def _format_response_body(response):
+    @classmethod
+    def _format_response_body(cls, response):
         """Format a response body for display in the log terminal.
 
         Detects HTML responses and shows a summary instead of raw markup.
@@ -75,7 +77,7 @@ class UNOAPI:
         ):
             return "[HTML page returned — expected JSON. Check URL.]"
 
-        max_len = 500
+        max_len = cls.MAX_RESPONSE_LOG_LENGTH
         if len(text) > max_len:
             return text[:max_len] + "… (truncated)"
         return text
