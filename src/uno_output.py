@@ -60,6 +60,26 @@ class UNOAPI:
         if self._log_callback:
             self._log_callback(log_line)
 
+    @staticmethod
+    def _format_response_body(response):
+        """Format a response body for display in the log terminal.
+
+        Detects HTML responses and shows a summary instead of raw markup.
+        Truncates long responses to keep the log readable.
+        """
+        content_type = response.headers.get("Content-Type", "")
+        text = response.text.strip()
+
+        if "text/html" in content_type or (
+            text and text[:15].lower().startswith(("<!doctype", "<html"))
+        ):
+            return "[HTML page returned — expected JSON. Check URL.]"
+
+        max_len = 500
+        if len(text) > max_len:
+            return text[:max_len] + "… (truncated)"
+        return text
+
     def set_field_mapping(self, field_mapping):
         logger.debug(f"Setting UNO field mapping: {field_mapping}")
         self.field_mapping = field_mapping
@@ -111,7 +131,8 @@ class UNOAPI:
 
         try:
             response = requests.put(self.endpoint, json=payload)
-            self._emit_log(f"← Response [{response.status_code}]: {response.text}")
+            body = self._format_response_body(response)
+            self._emit_log(f"← Response [{response.status_code}]: {body}")
             if response.status_code != 200:
                 logger.error(
                     f"Failed to send data to UNO API, status code: {response.status_code}"
@@ -145,7 +166,8 @@ class UNOAPI:
 
         try:
             response = requests.patch(self.endpoint, json=payload)
-            self._emit_log(f"← Response [{response.status_code}]: {response.text}")
+            body = self._format_response_body(response)
+            self._emit_log(f"← Response [{response.status_code}]: {body}")
             if response.status_code != 200:
                 logger.error(
                     f"Failed to send overlays batch to UNO API, status code: {response.status_code}"
@@ -197,7 +219,8 @@ class UNOAPI:
             self._emit_log(f"  Request body: {json.dumps(payload)}")
             try:
                 response = requests.patch(self.endpoint, json=payload)
-                self._emit_log(f"← Response [{response.status_code}]: {response.text}")
+                body = self._format_response_body(response)
+                self._emit_log(f"← Response [{response.status_code}]: {body}")
                 if response.status_code == 200:
                     self._emit_log("✓ Connection successful!")
                 else:
@@ -212,7 +235,8 @@ class UNOAPI:
             self._emit_log(f"  Request body: {json.dumps(payload)}")
             try:
                 response = requests.put(self.endpoint, json=payload)
-                self._emit_log(f"← Response [{response.status_code}]: {response.text}")
+                body = self._format_response_body(response)
+                self._emit_log(f"← Response [{response.status_code}]: {body}")
                 if response.status_code == 200:
                     self._emit_log("✓ Connection successful!")
                 else:
