@@ -17,6 +17,12 @@ class UNOAPI:
         subscribe_to_data(
             "scoresight.json", "uno_essentials_id", self.set_uno_essentials_id
         )
+        self.use_overlays_format = fetch_data("scoresight.json", "uno_overlays_format", False)
+        subscribe_to_data("scoresight.json", "uno_overlays_format", self.set_overlays_format)
+        self.subCompositionId = fetch_data("scoresight.json", "uno_subcomposition_id", "")
+        subscribe_to_data(
+            "scoresight.json", "uno_subcomposition_id", self.set_subcomposition_id
+        )
 
     def set_update_same(self, update_same):
         self.update_same = update_same
@@ -26,6 +32,12 @@ class UNOAPI:
 
     def set_uno_essentials_id(self, uno_essentials_id):
         self.uno_essentials_id = uno_essentials_id
+
+    def set_overlays_format(self, use_overlays_format):
+        self.use_overlays_format = use_overlays_format
+
+    def set_subcomposition_id(self, subCompositionId):
+        self.subCompositionId = subCompositionId
 
     def set_field_mapping(self, field_mapping):
         logger.debug(f"Setting UNO field mapping: {field_mapping}")
@@ -43,10 +55,24 @@ class UNOAPI:
         if self.update_same:
             look_in.append(TextDetectionTargetWithResult.ResultState.SameNoChange)
 
-        for target in detection:
-            if target.result_state in look_in and target.name in self.field_mapping:
-                uno_command = self.field_mapping[target.name]
-                self.send_uno_command(uno_command, target.result)
+        # Check if we're using overlays format
+        if self.use_overlays_format:
+            # Collect all fields that need updating
+            updates = {}
+            for target in detection:
+                if target.result_state in look_in and target.name in self.field_mapping:
+                    field_name = self.field_mapping[target.name]
+                    updates[field_name] = target.result
+
+            # Send batch update if there are any updates
+            if updates:
+                self.send_uno_overlays_batch(updates)
+        else:
+            # Use existing individual update behavior
+            for target in detection:
+                if target.result_state in look_in and target.name in self.field_mapping:
+                    uno_command = self.field_mapping[target.name]
+                    self.send_uno_command(uno_command, target.result)
 
     def send_uno_command(self, command, value):
         if not self.essentials:
@@ -73,6 +99,34 @@ class UNOAPI:
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to send data to UNO API: {e}")
+
+    def send_uno_overlays_batch(self, updates):
+        """Send batched updates using overlays format with PATCH request."""
+        if not self.subCompositionId:
+            logger.error("subCompositionId is not set for overlays format")
+            return
+
+        payload = [
+            {
+                "subCompositionId": self.subCompositionId,
+                "payload": updates
+            }
+        ]
+
+        try:
+            response = requests.patch(self.endpoint, json=payload)
+            if response.status_code != 200:
+                logger.error(
+                    f"Failed to send overlays batch to UNO API, status code: {response.status_code}"
+                )
+            else:
+                logger.debug(f"Successfully sent overlays batch to UNO API: {updates}")
+
+            # Check rate limit headers
+            self.check_rate_limits(response.headers)
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to send overlays batch to UNO API: {e}")
 
     def check_rate_limits(self, headers):
         rate_limit_headers = [
