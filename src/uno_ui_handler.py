@@ -101,9 +101,56 @@ class UNOUIHandler:
             partial(self.globalSettingsChanged, "uno_essentials_id")
         )
 
+        # Connect the "overlays format" checkbox if it exists
+        if hasattr(self.ui, 'checkBox_uno_overlays_format'):
+            self.ui.checkBox_uno_overlays_format.setChecked(
+                fetch_data("scoresight.json", "uno_overlays_format", False)
+            )
+            self.ui.checkBox_uno_overlays_format.stateChanged.connect(
+                self.set_uno_overlays_format
+            )
+
+            # connect lineEdit_uno_subcomposition_id if it exists
+            if hasattr(self.ui, 'lineEdit_uno_subcomposition_id'):
+                self.ui.lineEdit_uno_subcomposition_id.setText(
+                    fetch_data("scoresight.json", "uno_subcomposition_id", "")
+                )
+                self.ui.lineEdit_uno_subcomposition_id.textChanged.connect(
+                    partial(self.globalSettingsChanged, "uno_subcomposition_id")
+                )
+
+                # Create or find the widget container for overlays details
+                if hasattr(self.ui, 'widget_uno_overlays_details'):
+                    self.ui.widget_uno_overlays_details.setVisible(
+                        self.ui.checkBox_uno_overlays_format.isChecked()
+                    )
+        else:
+            logger.debug(
+                "UNO overlays format UI elements not found in UI file. "
+                "Overlays format feature will not be available in the UI."
+            )
+
     def set_uno_essentials(self, value):
         self.globalSettingsChanged("uno_essentials", value)
         self.ui.widget_uno_essentials_details.setVisible(value)
+
+    def set_uno_overlays_format(self, value):
+        """Handle overlays format checkbox change."""
+        self.globalSettingsChanged("uno_overlays_format", value)
+
+        # Show/hide the subCompositionId input field
+        if hasattr(self.ui, 'widget_uno_overlays_details'):
+            self.ui.widget_uno_overlays_details.setVisible(value)
+
+        # When overlays format is enabled, hide Essentials options (not compatible)
+        if value and hasattr(self.ui, 'checkBox_uno_essentials'):
+            # Disable essentials mode when overlays format is enabled
+            if self.ui.checkBox_uno_essentials.isChecked():
+                self.ui.checkBox_uno_essentials.setChecked(False)
+            self.ui.checkBox_uno_essentials.setEnabled(False)
+        elif hasattr(self.ui, 'checkBox_uno_essentials'):
+            # Re-enable essentials when overlays format is disabled
+            self.ui.checkBox_uno_essentials.setEnabled(True)
 
     def toggleUNO(self, value):
         if not self.unoUpdater:
