@@ -1,5 +1,5 @@
 from functools import partial
-from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtGui import QStandardItemModel, QStandardItem, QFont
 from PySide6.QtCore import Qt
 
 from text_detection_target import TextDetectionTarget
@@ -30,6 +30,7 @@ class UNOUIHandler:
             self.ui.lineEdit_unoUrl.text(),
             {},
         )
+        self._setup_log_callback()
         self.globalSettingsChanged("uno_url", self.ui.lineEdit_unoUrl.text())
         self.unoMappingChanged(True)
 
@@ -65,6 +66,11 @@ class UNOUIHandler:
             self.ui.lineEdit_unoUrl.text(),
             {},
         )
+
+        # Setup log terminal
+        self._setup_log_terminal()
+        self._setup_log_callback()
+
         # add standard item model to the tableView_unoMapping
         self.ui.tableView_unoMapping.setModel(QStandardItemModel())
         mapping = fetch_data("scoresight.json", "uno_mapping", {})
@@ -102,7 +108,7 @@ class UNOUIHandler:
         )
 
         # Connect the "overlays format" checkbox if it exists
-        if hasattr(self.ui, 'checkBox_uno_overlays_format'):
+        if hasattr(self.ui, "checkBox_uno_overlays_format"):
             self.ui.checkBox_uno_overlays_format.setChecked(
                 fetch_data("scoresight.json", "uno_overlays_format", False)
             )
@@ -111,7 +117,7 @@ class UNOUIHandler:
             )
 
             # connect lineEdit_uno_subcomposition_id if it exists
-            if hasattr(self.ui, 'lineEdit_uno_subcomposition_id'):
+            if hasattr(self.ui, "lineEdit_uno_subcomposition_id"):
                 self.ui.lineEdit_uno_subcomposition_id.setText(
                     fetch_data("scoresight.json", "uno_subcomposition_id", "")
                 )
@@ -120,7 +126,7 @@ class UNOUIHandler:
                 )
 
                 # Create or find the widget container for overlays details
-                if hasattr(self.ui, 'widget_uno_overlays_details'):
+                if hasattr(self.ui, "widget_uno_overlays_details"):
                     self.ui.widget_uno_overlays_details.setVisible(
                         self.ui.checkBox_uno_overlays_format.isChecked()
                     )
@@ -129,6 +135,42 @@ class UNOUIHandler:
                 "UNO overlays format UI elements not found in UI file. "
                 "Overlays format feature will not be available in the UI."
             )
+
+    def _setup_log_terminal(self):
+        """Configure the log terminal widget with monospace font and button connections."""
+        if hasattr(self.ui, "plainTextEdit_uno_log"):
+            font = QFont("Courier")
+            font.setStyleHint(QFont.StyleHint.Monospace)
+            font.setPointSize(9)
+            self.ui.plainTextEdit_uno_log.setFont(font)
+
+        if hasattr(self.ui, "pushButton_uno_test"):
+            self.ui.pushButton_uno_test.clicked.connect(self._test_connection)
+
+        if hasattr(self.ui, "pushButton_uno_clear_log"):
+            self.ui.pushButton_uno_clear_log.clicked.connect(self._clear_log)
+
+    def _setup_log_callback(self):
+        """Set the log callback on the current unoUpdater instance."""
+        if self.unoUpdater and hasattr(self.ui, "plainTextEdit_uno_log"):
+            self.unoUpdater.set_log_callback(self._append_log)
+
+    def _append_log(self, message):
+        """Append a log message to the UNO log terminal widget."""
+        if hasattr(self.ui, "plainTextEdit_uno_log"):
+            self.ui.plainTextEdit_uno_log.appendPlainText(message)
+
+    def _test_connection(self):
+        """Send a test request to verify the UNO endpoint connection."""
+        if not self.unoUpdater:
+            self._append_log("No UNO connection configured.")
+            return
+        self.unoUpdater.test_connection()
+
+    def _clear_log(self):
+        """Clear the UNO log terminal."""
+        if hasattr(self.ui, "plainTextEdit_uno_log"):
+            self.ui.plainTextEdit_uno_log.clear()
 
     def set_uno_essentials(self, value):
         self.globalSettingsChanged("uno_essentials", value)
@@ -139,16 +181,16 @@ class UNOUIHandler:
         self.globalSettingsChanged("uno_overlays_format", value)
 
         # Show/hide the subCompositionId input field
-        if hasattr(self.ui, 'widget_uno_overlays_details'):
+        if hasattr(self.ui, "widget_uno_overlays_details"):
             self.ui.widget_uno_overlays_details.setVisible(value)
 
         # When overlays format is enabled, hide Essentials options (not compatible)
-        if value and hasattr(self.ui, 'checkBox_uno_essentials'):
+        if value and hasattr(self.ui, "checkBox_uno_essentials"):
             # Disable essentials mode when overlays format is enabled
             if self.ui.checkBox_uno_essentials.isChecked():
                 self.ui.checkBox_uno_essentials.setChecked(False)
             self.ui.checkBox_uno_essentials.setEnabled(False)
-        elif hasattr(self.ui, 'checkBox_uno_essentials'):
+        elif hasattr(self.ui, "checkBox_uno_essentials"):
             # Re-enable essentials when overlays format is disabled
             self.ui.checkBox_uno_essentials.setEnabled(True)
 
