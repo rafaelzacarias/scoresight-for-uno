@@ -1,13 +1,13 @@
-# ⚠️ Stalled ⚠️ This project is not under active development
+# ScoreSight for UNO — Real-time OCR For Scoreboards
 
-## ScoreSight - Real-time OCR For Scoreboards, Apps, Games and more
+> **This is a fork of [occ-ai/scoresight](https://github.com/occ-ai/scoresight)**, which is no longer under active development. This fork focuses on improving and extending the [UNO (overlays.uno)](https://www.overlays.uno/) integration for live scoreboard streaming.
 
 <div align="center">
 
-[![GitHub](https://img.shields.io/github/license/occ-ai/scoresight)](https://github.com/occ-ai/scoresight/blob/main/LICENSE)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/occ-ai/scoresight/build.yaml)](https://github.com/occ-ai/scoresight/actions/workflows/build.yaml)
-[![Total downloads](https://img.shields.io/github/downloads/occ-ai/scoresight/total)](https://github.com/occ-ai/scoresight/releases)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/occ-ai/scoresight)](https://github.com/occ-ai/scoresight/releases)
+[![GitHub](https://img.shields.io/github/license/rafaelzacarias/scoresight-for-uno)](https://github.com/rafaelzacarias/scoresight-for-uno/blob/main/LICENSE)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/rafaelzacarias/scoresight-for-uno/build.yaml)](https://github.com/rafaelzacarias/scoresight-for-uno/actions/workflows/build.yaml)
+[![Total downloads](https://img.shields.io/github/downloads/rafaelzacarias/scoresight-for-uno/total)](https://github.com/rafaelzacarias/scoresight-for-uno/releases)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/rafaelzacarias/scoresight-for-uno)](https://github.com/rafaelzacarias/scoresight-for-uno/releases)
 
 </div>
 
@@ -23,11 +23,33 @@ It is written in Python and utilizes the following technologies:
 - OpenCV: A computer vision library for image and video processing.
 - Tesseract OCR: An open-source OCR engine for recognizing text from images.
 
-It is the best **free** real-time OCR tool on planet Earth for scoreboards and games.
+## What Changed in This Fork
 
-## Features
+This fork builds on the original ScoreSight and adds the following improvements focused on the UNO output integration:
 
-- Works natively on Windows, Mac and Linux (the only scoreboard OCR tool that does it)
+### UNO Overlays Format (PATCH API)
+- Added support for the **Singular.live PATCH `/control` API** used by [overlays.uno](https://www.overlays.uno/) overlays.
+- Sends **batched PATCH requests** instead of individual PUT requests, reducing network overhead and ensuring atomic field updates.
+- Configurable `subCompositionId` to target specific overlay compositions.
+- Automatic routing of clock fields to a dedicated clock sub-composition.
+- Mutually exclusive with UNO Essentials mode — the UI prevents conflicting configurations.
+
+### UNO Log Terminal & Test Connection
+- Added a **log terminal** in the UNO tab that displays real-time HTTP request/response activity.
+- Added a **"Test Connection"** button to verify UNO API connectivity before going live.
+- HTML responses are detected and logged cleanly; long response bodies are truncated.
+
+### Background Threading for HTTP Requests
+- Moved all UNO HTTP requests (PUT/PATCH) to **background threads** to avoid blocking the PySide6 UI.
+- Uses `threading.Thread(daemon=True)` for fire-and-forget requests.
+- Log messages are safely routed back to the UI thread via a Qt Signal (`_LogSignalEmitter`).
+
+### Rate-Limit Awareness
+- Responses are inspected for `X-RateLimit-Remaining` headers and surfaced in the UI so operators know when they are approaching API limits.
+
+## Original Features
+
+- Works natively on Windows, Mac and Linux
 - Input/Capture: USB, NDI, Screen Capture, URL / RTSP, Video Files, etc.
 - Perspective correction
 - Image processing and binarization techniques, local, global etc.
@@ -67,7 +89,7 @@ Additional guides:
 
 ## Installation
 
-See the [releases](https://github.com/occ-ai/scoresight/releases) page for downloadable executables and installers.
+See the [releases](https://github.com/rafaelzacarias/scoresight-for-uno/releases) page for downloadable executables and installers.
 
 See the [Install Guide](docs/INSTALL.md) for help with installation.
 
@@ -83,7 +105,7 @@ See the [Install Guide](docs/INSTALL.md) for help with installation.
 1. Clone the repository:
 
   ```shell
-  git clone https://github.com/occ-ai/scoresight.git
+  git clone https://github.com/rafaelzacarias/scoresight-for-uno.git
   ```
 
 2. Install the required dependencies:
